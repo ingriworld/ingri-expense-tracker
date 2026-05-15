@@ -12,21 +12,28 @@ export default function PinScreen({onUnlock}) {
   const [pin,  setPin]  = useState('');
   const [shake,setShake]= useState(false);
   const [wrong,setWrong]= useState(false);
+  const [loading,setLoading]= useState(false);
 
   const press = k => {
-    if (pin.length >= 6) return;
+    if (pin.length === 0) import('./Tracker').catch(()=>{});
+    if (pin.length >= 6 || loading) return;
     const next = pin + k;
     setPin(next);
     if (next.length === 6) {
       if (next === CORRECT_PIN) {
-        setTimeout(() => onUnlock(), 150);
+        setLoading(true);
+        import('./Tracker')
+          .then(() => setTimeout(() => onUnlock(), 250))
+          .catch(() => setTimeout(() => onUnlock(), 250));
       } else {
         setShake(true); setWrong(true);
         setTimeout(() => { setPin(''); setShake(false); setWrong(false); }, 750);
       }
     }
   };
-  const erase = () => setPin(p => p.slice(0,-1));
+  const erase = () => {
+    if (!loading) setPin(p => p.slice(0,-1));
+  };
   const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
 
   useEffect(() => {
@@ -43,6 +50,7 @@ export default function PinScreen({onUnlock}) {
       <style>{`
         @keyframes pinShake{0%,100%{transform:translateX(0)}15%{transform:translateX(-10px)}35%{transform:translateX(10px)}55%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
         @keyframes pinFadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pinPulse{from{opacity:1;transform:scale(1.2)}to{opacity:0.4;transform:scale(1)}}
         .pin-wrap{animation:pinFadeIn 0.5s ease both}
         .pin-key:active{background:rgba(212,161,42,0.25)!important;transform:scale(0.95)}
       `}</style>
@@ -57,7 +65,8 @@ export default function PinScreen({onUnlock}) {
           {Array.from({length:6}).map((_,i) => (
             <div key={i} style={{width:'13px',height:'13px',borderRadius:'50%',transition:'all 0.18s',
               background: i<pin.length ? (wrong?'#e05252':B.gold) : 'rgba(255,255,255,0.15)',
-              transform: i<pin.length?'scale(1.2)':'scale(1)'
+              transform: i<pin.length?'scale(1.2)':'scale(1)',
+              animation: loading ? `pinPulse 0.5s alternate infinite ${i * 0.1}s` : 'none'
             }}/>
           ))}
         </div>
