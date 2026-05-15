@@ -209,9 +209,17 @@ function Tracker({onLock}) {
   };
 
   const submit = async () => {
-    if (!form.vendor.trim()||!form.amount||!form.dueDate){setFormErr('Please fill all required fields.');return;}
-    await addDoc(collection(db, "payments"), { ...form, amount: Number(form.amount), status: 'pending' });
-    setForm(EMPTY); setFormErr(''); setSheet(false); setTab('payments');
+    if (!form.vendor?.trim()||!form.amount||!form.dueDate){setFormErr('Please fill all required fields.');return;}
+    try {
+      const payload = { ...form, amount: Number(form.amount), status: 'pending' };
+      // Firestore does not accept undefined values, so we clean them up
+      Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+      
+      await addDoc(collection(db, "payments"), payload);
+      setForm(EMPTY); setFormErr(''); setSheet(false); setTab('payments');
+    } catch (err) {
+      setFormErr(err.message);
+    }
   };
 
   const exportCSV = () => {
