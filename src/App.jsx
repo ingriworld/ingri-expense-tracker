@@ -156,12 +156,14 @@ export default function App() {
 // ── Main Tracker ──────────────────────────────────────────────────────────────
 function Tracker({onLock}) {
   const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "payments"), (snap) => {
       const data = [];
       snap.forEach((d) => data.push({ ...d.data(), id: d.id }));
       setPayments(data);
+      setLoading(false);
     });
     return () => unsub();
   }, []);
@@ -281,6 +283,7 @@ function Tracker({onLock}) {
       <style>{`
         @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
         @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         input::placeholder{color:${B.slateDark}}
         .sheet-input::placeholder{color:rgba(255,255,255,0.4)}
         .sheet-input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:0.6;cursor:pointer}
@@ -309,8 +312,30 @@ function Tracker({onLock}) {
 
         <div style={{padding:'1rem'}}>
 
-          {/* ══ DASHBOARD ══ */}
-          {tab==='dashboard' && <>
+          {loading ? (
+            <div style={{animation:'pulse 1.5s infinite ease-in-out'}}>
+              {tab === 'dashboard' ? (
+                <>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'12px'}}>
+                    {[1,2,3,4].map(i=><div key={i} style={{background:B.slate,borderRadius:'16px',height:'76px',opacity:0.4}}/>)}
+                  </div>
+                  <div style={{...cardStyle, height:'180px', background:B.slate, opacity:0.4, marginBottom:'16px'}}/>
+                  <div style={{...cardStyle, height:'100px', background:B.slate, opacity:0.4}}/>
+                </>
+              ) : (
+                <>
+                  <div style={{height:'46px', background:B.slate, opacity:0.4, borderRadius:'16px', marginBottom:'10px'}}/>
+                  <div style={{display:'flex', gap:'7px', marginBottom:'16px'}}>
+                    {[1,2,3,4].map(i=><div key={i} style={{height:'30px', width:'60px', background:B.slate, opacity:0.4, borderRadius:'20px'}}/>)}
+                  </div>
+                  {[1,2,3].map(i=><div key={i} style={{...cardStyle, height:'140px', background:B.slate, opacity:0.4, marginBottom:'16px'}}/>)}
+                </>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* ══ DASHBOARD ══ */}
+              {tab==='dashboard' && <>
 
             {/* Metric cards */}
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'12px'}}>
@@ -426,6 +451,8 @@ function Tracker({onLock}) {
               </div>
             ))}
           </>}
+            </>
+          )}
         </div>
       </div>
 
