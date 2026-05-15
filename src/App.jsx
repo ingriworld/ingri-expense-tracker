@@ -60,7 +60,7 @@ const STATUS = {
   pending:   {label:'Pending',  bg:B.infoBg,    text:B.infoText,    dot:B.teal},
 };
 const PIE_FILL = {overdue:'#e05252','due-soon':B.gold,pending:B.teal,paid:'#3aab5e'};
-const EMPTY = {vendor:'',amount:'',category:'Raw Materials',dueDate:'',notes:''};
+const EMPTY = {vendor:'',amount:'',category:'Raw Materials',dueDate:'',notes:'',pdfLink:''};
 
 // ── Shared tiny components ────────────────────────────────────────────────────
 const Badge = ({cs}) => (
@@ -206,8 +206,8 @@ function Tracker({onLock}) {
   };
 
   const exportCSV = () => {
-    const hdr = ['Vendor','Amount','Category','Due Date','Status','Paid Date','Notes'];
-    const data = rich.map(p=>[p.vendor,p.amount,p.category,p.dueDate,STATUS[p.cs].label,p.paidDate||'',p.notes||'']);
+    const hdr = ['Vendor','Amount','Category','Due Date','Status','Paid Date','Notes','Bill Link'];
+    const data = rich.map(p=>[p.vendor,p.amount,p.category,p.dueDate,STATUS[p.cs].label,p.paidDate||'',p.notes||'',p.pdfLink||'']);
     const csv  = [hdr,...data].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='ingri-payments.csv'; a.click();
   };
@@ -381,6 +381,16 @@ function Tracker({onLock}) {
                     <div style={{fontSize:'15px',fontWeight:700,color:B.brown}}>{p.vendor}</div>
                     <div style={{fontSize:'12px',color:B.grey,marginTop:'3px'}}>{p.category} · Due {fmtDate(p.dueDate)}</div>
                     {p.notes&&<div style={{fontSize:'12px',color:B.grey,marginTop:'2px',fontStyle:'italic'}}>{p.notes}</div>}
+                    {p.pdfLink && (
+                      <div style={{display:'flex', gap:'10px', marginTop:'8px'}}>
+                        <a href={p.pdfLink} target="_blank" rel="noreferrer" style={{display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:B.tealDark, fontWeight:700, textDecoration:'none', background:B.tealLight, padding:'5px 10px', borderRadius:'8px'}}>
+                          <span style={{fontSize:'12px'}}>📄</span> View Bill
+                        </a>
+                        <a href={p.pdfLink} download target="_blank" rel="noreferrer" style={{display:'flex', alignItems:'center', gap:'4px', fontSize:'11px', color:B.brown, fontWeight:700, textDecoration:'none', background:B.brownLight, padding:'5px 10px', borderRadius:'8px'}}>
+                          <span style={{fontSize:'12px'}}>⬇</span> Download
+                        </a>
+                      </div>
+                    )}
                   </div>
                   <div style={{textAlign:'right',flexShrink:0}}>
                     <div style={{fontSize:'17px',fontWeight:700,color:B.teal,fontFamily:'"Moranga", serif'}}>{fmtINR(p.amount)}</div>
@@ -462,6 +472,10 @@ function Tracker({onLock}) {
               <div>
                 <label style={sheetLabelStyle}>Notes (optional)</label>
                 <input className="sheet-input" style={sheetInputStyle} value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="Invoice #, reference…"/>
+              </div>
+              <div>
+                <label style={sheetLabelStyle}>Bill Link / PDF (optional)</label>
+                <input className="sheet-input" style={sheetInputStyle} type="url" value={form.pdfLink||''} onChange={e=>setForm(f=>({...f,pdfLink:e.target.value}))} placeholder="e.g. Google Drive or OneDrive link"/>
               </div>
               {formErr && <div style={{fontSize:'13px',color:'#fca5a5',fontWeight:500}}>{formErr}</div>}
             </div>
