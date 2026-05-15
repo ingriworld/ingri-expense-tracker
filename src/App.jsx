@@ -93,6 +93,15 @@ function PinScreen({onUnlock}) {
   const erase = () => setPin(p => p.slice(0,-1));
   const KEYS = ['1','2','3','4','5','6','7','8','9','','0','⌫'];
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (/^[0-9]$/.test(e.key)) press(e.key);
+      else if (e.key === 'Backspace') erase();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [pin]);
+
   return (
     <div style={{minHeight:'100vh',background:B.tealDark,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',fontFamily:'"Avenir LT Std", Avenir, sans-serif',padding:'2rem',userSelect:'none'}}>
       <style>{`
